@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Рыболовный прогноз</title>
+    <title>Умный рыболовный прогноз</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -355,13 +355,85 @@
                 margin: 10px 0;
             }
         }
+        
+        .github-banner {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 30px;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            z-index: 1000;
+        }
+        
+        .github-banner a {
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .github-banner i {
+            font-size: 1.2rem;
+        }
+        
+        .fishing-type {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 15px 0;
+        }
+        
+        .fishing-type-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .fishing-type-btn.active {
+            background: #4cd137;
+            border-color: #44bd32;
+            transform: scale(1.05);
+        }
+        
+        .tip-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #fbc531;
+        }
+        
+        .tip-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .tip-icon {
+            font-size: 1.5rem;
+            color: #fbc531;
+        }
     </style>
 </head>
 <body>
+    <div class="github-banner">
+        <a href="https://github.com/" target="_blank">
+            <i class="fab fa-github"></i> Размещено на GitHub Pages
+        </a>
+    </div>
+    
     <div class="container">
         <header>
-            <h1><i class="fas fa-fish"></i> Рыболовный Прогноз</h1>
-            <p class="subtitle">Выберите место на карте, чтобы увидеть прогноз погоды и вероятность успешной рыбалки на ближайшие 3 дня</p>
+            <h1><i class="fas fa-fish"></i> Умный Рыболовный Прогноз</h1>
+            <p class="subtitle">Выберите место на карте и получите прогноз погоды, вероятность клёва и персонализированные советы</p>
             
             <div class="api-panel">
                 <p>Для работы сайта требуется API ключ от OpenWeatherMap</p>
@@ -375,6 +447,15 @@
             <div class="map-section">
                 <div id="map"></div>
                 <p class="map-instruction">Кликните на карте, чтобы выбрать место для рыбалки</p>
+                
+                <div class="fishing-type">
+                    <div class="fishing-type-btn active" data-type="freshwater">
+                        <i class="fas fa-water"></i> Пресная вода
+                    </div>
+                    <div class="fishing-type-btn" data-type="saltwater">
+                        <i class="fas fa-water"></i> Морская рыбалка
+                    </div>
+                </div>
             </div>
             
             <div class="forecast-section">
@@ -420,13 +501,16 @@
                 </div>
                 
                 <div class="fishing-tips">
-                    <h3 class="tips-title"><i class="fas fa-lightbulb"></i> Советы для рыбалки</h3>
-                    <ul class="tips-list">
-                        <li>Лучшее время для ловли: <span class="highlight">утро (5:00-9:00)</span> и <span class="highlight">вечер (18:00-21:00)</span></li>
-                        <li>Рекомендуемые приманки: <span class="highlight">воблеры, блесны, силиконовые приманки</span></li>
-                        <li>Активность рыбы зависит от температуры воды, атмосферного давления и фазы луны</li>
-                        <li>Одевайтесь по погоде и используйте солнцезащитные средства</li>
-                    </ul>
+                    <h3 class="tips-title"><i class="fas fa-lightbulb"></i> Персонализированные советы</h3>
+                    <div id="tips-container">
+                        <div class="tip-card">
+                            <div class="tip-title">
+                                <i class="fas fa-info-circle tip-icon"></i>
+                                <h4>Советы появятся здесь</h4>
+                            </div>
+                            <p>После выбора места на карте вы получите персонализированные советы для рыбалки в зависимости от погодных условий и типа водоёма.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -458,13 +542,14 @@
         
         <div class="footer">
             <p>Данные о погоде предоставлены сервисом OpenWeatherMap</p>
-            <p>© 2023 Рыболовный Прогноз | Для заядлых рыбаков</p>
+            <p>© 2023 Умный Рыболовный Прогноз | Размещено на GitHub Pages</p>
         </div>
     </div>
 
     <script>
         // API ключ для OpenWeatherMap
         let apiKey = '';
+        let fishingType = 'freshwater';
         
         // Инициализация карты
         const map = L.map('map').setView([55.7558, 37.6173], 5);
@@ -483,6 +568,8 @@
         // Элементы DOM
         const apiKeyInput = document.getElementById('api-key');
         const saveApiKeyBtn = document.getElementById('save-api-key');
+        const tipsContainer = document.getElementById('tips-container');
+        const fishingTypeButtons = document.querySelectorAll('.fishing-type-btn');
         
         // Проверка сохраненного API ключа
         if (localStorage.getItem('fishing_forecast_api_key')) {
@@ -502,6 +589,21 @@
             } else {
                 alert('Пожалуйста, введите API ключ');
             }
+        });
+        
+        // Обработчик выбора типа рыбалки
+        fishingTypeButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                fishingTypeButtons.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                fishingType = this.dataset.type;
+                
+                // Обновляем советы
+                const position = marker.getLatLng();
+                if (apiKey) {
+                    updateWeatherData(position.lat, position.lng);
+                }
+            });
         });
         
         // Обработчик перемещения маркера
@@ -531,19 +633,33 @@
                 // Запрос текущей погоды
                 const currentWeatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${apiKey}&units=metric&lang=ru`;
                 const currentResponse = await fetch(currentWeatherUrl);
+                
+                if (!currentResponse.ok) {
+                    throw new Error(`Ошибка API: ${currentResponse.status}`);
+                }
+                
                 const currentData = await currentResponse.json();
                 
                 // Запрос прогноза на 5 дней
                 const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lng}&appid=${apiKey}&units=metric&lang=ru`;
                 const forecastResponse = await fetch(forecastUrl);
+                
+                if (!forecastResponse.ok) {
+                    throw new Error(`Ошибка API: ${forecastResponse.status}`);
+                }
+                
                 const forecastData = await forecastResponse.json();
                 
                 // Обновляем данные на странице
                 updateCurrentWeather(currentData, forecastData);
                 updateThreeDayForecast(forecastData);
+                
+                // Генерируем советы
+                generateFishingTips(currentData, fishingType);
             } catch (error) {
                 console.error('Ошибка при получении данных:', error);
-                document.querySelector('.fishing-probability p').textContent = 'Ошибка при загрузке данных. Проверьте API ключ и соединение.';
+                document.querySelector('.fishing-probability p').textContent = 
+                    'Ошибка: ' + error.message + '. Проверьте API ключ и соединение.';
             }
         }
         
@@ -618,6 +734,7 @@
             else probability -= 20;
             
             // Влияние давления
+            pressure = pressure * 0.750064; // гПа в мм рт.ст.
             if (pressure >= 755 && pressure <= 765) probability += 15;
             else if (pressure >= 750 && pressure < 755) probability += 5;
             else if (pressure > 765 && pressure <= 775) probability += 5;
@@ -681,6 +798,157 @@
                 
                 card.querySelector('.forecast-probability').textContent = `Вероятность: ${fishingProbability}%`;
             });
+        }
+        
+        // Генерация персонализированных советов
+        function generateFishingTips(weatherData, waterType) {
+            const temp = weatherData.main.temp;
+            const wind = weatherData.wind.speed;
+            const pressure = weatherData.main.pressure * 0.750064;
+            const cloudiness = weatherData.clouds.all;
+            const humidity = weatherData.main.humidity;
+            const weatherMain = weatherData.weather[0].main.toLowerCase();
+            
+            const tips = [];
+            
+            // Общие советы
+            if (temp < 10) {
+                tips.push({
+                    icon: 'fas fa-temperature-low',
+                    title: 'Низкая температура',
+                    text: 'Рыба менее активна в холодной воде. Используйте медленные проводки и мелкие приманки.'
+                });
+            } else if (temp > 25) {
+                tips.push({
+                    icon: 'fas fa-temperature-high',
+                    title: 'Высокая температура',
+                    text: 'В жаркую погоду рыба уходит на глубину. Попробуйте глубоководные воблеры или джиг.'
+                });
+            }
+            
+            if (wind > 6) {
+                tips.push({
+                    icon: 'fas fa-wind',
+                    title: 'Сильный ветер',
+                    text: 'При сильном ветре рыба часто держится подветренного берега. Используйте более тяжелые приманки.'
+                });
+            } else if (wind < 2) {
+                tips.push({
+                    icon: 'fas fa-wind',
+                    title: 'Слабый ветер',
+                    text: 'В штиль рыба становится осторожной. Используйте тонкие лески и незаметные приманки.'
+                });
+            }
+            
+            if (pressure < 750) {
+                tips.push({
+                    icon: 'fas fa-tachometer-alt',
+                    title: 'Низкое давление',
+                    text: 'При низком давлении хищная рыба активизируется. Попробуйте агрессивные приманки и быстрые проводки.'
+                });
+            } else if (pressure > 765) {
+                tips.push({
+                    icon: 'fas fa-tachometer-alt',
+                    title: 'Высокое давление',
+                    text: 'При высоком давлении рыба может быть пассивной. Используйте мелкие приманки и медленные проводки.'
+                });
+            }
+            
+            // Советы по типу водоема
+            if (waterType === 'freshwater') {
+                tips.push({
+                    icon: 'fas fa-water',
+                    title: 'Пресный водоем',
+                    text: 'Для пресноводной рыбалки хорошо подходят: воблеры, блесны, силиконовые приманки и поплавочные снасти.'
+                });
+                
+                if (cloudiness > 70) {
+                    tips.push({
+                        icon: 'fas fa-cloud',
+                        title: 'Пасмурная погода',
+                        text: 'В пасмурную погоду на пресных водоемах хорошо клюет щука и окунь. Попробуйте блесны и воблеры.'
+                    });
+                }
+                
+                if (humidity > 80) {
+                    tips.push({
+                        icon: 'fas fa-tint',
+                        title: 'Высокая влажность',
+                        text: 'При высокой влажности после дождя активизируется белая рыба. Попробуйте поплавочную удочку с наживкой.'
+                    });
+                }
+            } else {
+                tips.push({
+                    icon: 'fas fa-water',
+                    title: 'Морская рыбалка',
+                    text: 'Для морской рыбалки используйте прочные снасти и приманки: пилькеры, джиг-головки с силиконом, морские воблеры.'
+                });
+                
+                if (wind > 4 && wind < 8) {
+                    tips.push({
+                        icon: 'fas fa-wind',
+                        title: 'Умеренный ветер',
+                        text: 'При умеренном ветре морская рыба хорошо клюет на пилькеры и джиг-приманки. Попробуйте ступенчатую проводку.'
+                    });
+                }
+                
+                if (weatherMain.includes('rain')) {
+                    tips.push({
+                        icon: 'fas fa-cloud-rain',
+                        title: 'Дождливая погода',
+                        text: 'После дождя в море хорошо клюет кефаль и ставрида. Используйте мелкие приманки с быстрой проводкой.'
+                    });
+                }
+            }
+            
+            // Специальные советы в зависимости от погоды
+            if (weatherMain.includes('rain')) {
+                tips.push({
+                    icon: 'fas fa-umbrella',
+                    title: 'Дождливая погода',
+                    text: 'Во время дождя рыба подходит ближе к берегу. Используйте поверхностные приманки и нахлыст.'
+                });
+            } else if (weatherMain.includes('clear')) {
+                tips.push({
+                    icon: 'fas fa-sun',
+                    title: 'Ясная погода',
+                    text: 'В солнечную погоду используйте естественные приманки и маскировку. Рыба хорошо видит рыбака на берегу.'
+                });
+            } else if (weatherMain.includes('cloud')) {
+                tips.push({
+                    icon: 'fas fa-cloud',
+                    title: 'Облачная погода',
+                    text: 'При облачной погоде рыба активна весь день. Попробуйте разные приманки и глубины ловли.'
+                });
+            }
+            
+            // Отображаем советы
+            tipsContainer.innerHTML = '';
+            
+            if (tips.length === 0) {
+                tipsContainer.innerHTML = `
+                    <div class="tip-card">
+                        <div class="tip-title">
+                            <i class="fas fa-info-circle tip-icon"></i>
+                            <h4>Советы отсутствуют</h4>
+                        </div>
+                        <p>Для выбранных условий нет специальных рекомендаций. Используйте стандартные техники ловли.</p>
+                    </div>
+                `;
+            } else {
+                tips.forEach(tip => {
+                    const tipElement = document.createElement('div');
+                    tipElement.className = 'tip-card';
+                    tipElement.innerHTML = `
+                        <div class="tip-title">
+                            <i class="${tip.icon} tip-icon"></i>
+                            <h4>${tip.title}</h4>
+                        </div>
+                        <p>${tip.text}</p>
+                    `;
+                    tipsContainer.appendChild(tipElement);
+                });
+            }
         }
         
         // Инициализация данных при загрузке
